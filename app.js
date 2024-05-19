@@ -5,11 +5,18 @@ const path = require('path');
 const session = require('express-session');
 const nunjucks = require('nunjucks');
 const flash = require('connect-flash');
+const passport = require('passport');
 require('dotenv').config();
 
 const pageRouter = require('./routes/page');
+const authRouter = require('./routes/auth');
+const { sequelize } = require('./models');
+const passportConfig = require('./passport');
 
 const app = express();
+sequelize.sync();
+passportConfig(passport);
+
 app.set('port', process.env.PORT || 3000);
 app.set('view engine', 'html');
 nunjucks.configure('views', {
@@ -24,7 +31,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(
 	session({
-		resave: false,
+		resave: true,
 		saveUninitialized: false,
 		secret: process.env.COOKIE_SECRET,
 		cookie: {
@@ -34,8 +41,12 @@ app.use(
 	})
 );
 app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/', pageRouter);
+app.use('/auth', authRouter);
+
 app.use((req, res, next) => {
 	const err = new Error('Not Found');
 	err.status = 404;
