@@ -5,16 +5,21 @@ const { isLoggedIn, isNotLoggedIn } = require('./middlewares');
 const { User } = require('../models');
 
 const router = express.Router();
+const HASH_COUNT = 12;
 
 router.post('/join', isNotLoggedIn, async (req, res, next) => {
 	const { email, nick, password } = req.body;
 	try {
-		const exUser = await User.find({ where: email });
+		const exUser = await User.findOne({
+			where: {
+				email,
+			},
+		});
 		if (exUser) {
 			req.flash('joinError', '이미 가입된 이메일입니다.');
 			return res.redirect('/join');
 		}
-		const hash = await bcrypt.hash(password, 12);
+		const hash = await bcrypt.hash(password, HASH_COUNT);
 		await User.create({ email, nick, password: hash });
 		return res.redirect('/');
 	} catch (error) {
@@ -22,15 +27,18 @@ router.post('/join', isNotLoggedIn, async (req, res, next) => {
 		return next(error);
 	}
 });
-
+console.log('auth');
 router.post('/login', isNotLoggedIn, (req, res, next) => {
+	console.log('auth, login');
 	passport.authenticate('local', (authError, user, info) => {
+		console.log('auth - authenticate local');
 		if (authError) {
 			console.error(authError);
 			return next(authError);
 		}
 
 		if (!user) {
+			console.log('auth - authenticate not user');
 			req.flash('loginError', info.message);
 			return res.redirect('/');
 		}
@@ -63,4 +71,4 @@ router.get(
 	}
 );
 
-module.exports = router;
+module.exports = { router, HASH_COUNT };

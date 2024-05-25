@@ -7,7 +7,9 @@ exports.isLoggedIn = (req, res, next) => {
 };
 
 exports.isNotLoggedIn = (req, res, next) => {
+	console.log('middlewares isNotLoggedIn');
 	if (!req.isAuthenticated()) {
+		console.log('middlewares next');
 		next();
 	} else {
 		res.redirect('/');

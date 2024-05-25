@@ -9,7 +9,7 @@ const passport = require('passport');
 require('dotenv').config();
 
 const pageRouter = require('./routes/page');
-const authRouter = require('./routes/auth');
+const { router: authRouter } = require('./routes/auth');
 const { sequelize } = require('./models');
 const passportConfig = require('./passport');
 
